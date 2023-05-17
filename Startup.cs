@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
+using WebApiAutores.Filtros;
 using WebApiAutores.Middlewares;
+using WebApiAutores.Servicios;
 
 namespace WebApiAutores
 {
@@ -16,8 +18,6 @@ namespace WebApiAutores
 
         public void ConfigureServices(IServiceCollection services)
         {
-
-
             services.AddCors(options =>
             {
                 options.AddPolicy(name: MyAllowSpecificOrigins,
@@ -29,15 +29,24 @@ namespace WebApiAutores
                                   });
             });
 
-            services.AddControllers().AddJsonOptions(x=>x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
+            services.AddControllers(opt =>
+            {
+                opt.Filters.Add(typeof(FiltrosDeExepcion));
+            }).AddJsonOptions(x=>x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles)
+            .AddNewtonsoftJson();
 
             services.AddDbContext<AplicationDbContext>(options =>
             {
                 options.UseSqlServer(Configuration.GetConnectionString("defaultConecction"));
             });
 
+            services.AddTransient<MiFiltroDeAccion>();
+            //services.AddHostedService<EscribirEnArchivo>();
+
             services.AddEndpointsApiExplorer();
             services.AddSwaggerGen();
+
+            services.AddAutoMapper(typeof(Startup));  
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger)
